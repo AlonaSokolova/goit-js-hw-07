@@ -1,48 +1,49 @@
 import { galleryItems } from './gallery-items.js';
 // Change code below this line
 
-console.log(galleryItems);
+// console.log(galleryItems);
 
-const gallery = document.querySelector('.gallery')
-const items = []
 
-galleryItems.forEach(element => {
-	const galleryItem = document.createElement('div')
-	galleryItem.className = 'gallery__item'
-	const galleryLink = document.createElement('a')
-	galleryLink.className = 'gallery__link'
-	galleryLink.href = element.original
-	const galleryImage = document.createElement('img')
-    galleryImage.className = 'gallery__image'
-    galleryImage.src = element.preview;
-    galleryImage.setAttribute('data-source', element.original)
-    galleryImage.alt = element.description;
+const galleryMarkUp = document.querySelector('.gallery');
 
-	galleryItem.append(galleryLink)
-	galleryLink.append(galleryImage)
-	items.push(galleryItem)
-})
+const galleryEl = galleryItems
+    .map(({ preview, description, original }) => 
+    `<li class="gallery__item">
+        <a class="gallery__link" href="${original}">
+            <img
+            class="gallery__image"
+            src="${preview}"
+            data-source="${original}"
+            alt="${description}"
+            />
+        </a>
+    </li>`)
+    .join('');
 
-gallery.append(...items)
+galleryMarkUp.insertAdjacentHTML('beforeend', galleryEl)
 
-gallery.addEventListener('click', e => {
-    e.preventDefault();
-    if (e.target.nodeName !== 'IMG') {
-		return
-	}
+galleryMarkUp.addEventListener('click', onImgClick)
 
-    const selectedImage = e.target.getAttribute('data-source')
+function onImgClick(evt) {
+    evt.preventDefault();
 
-    const instance = basicLightbox.create(`
-    <img src="${selectedImage}" width="800" height="600">
-`)
+    if (evt.target.nodeName !== 'IMG') {
+        return;
+    }
 
-    instance.show()
+    const modal = basicLightbox.create(
+        `<img src="${evt.target.dataset.source}" width="800" height="600">`,
+
+        {   onShow: () => window.addEventListener('keydown', onEscKeyPress),
+            onClose: () => window.removeEventListener('keydown', onEscKeyPress),
+        }
+    );
     
-    gallery.addEventListener('keydown', e => {
-		if (e.key === 'Escape') {
-			instance.close()
-			
-		}
-	})
-})
+    modal.show();
+
+    function onEscKeyPress(evt) {   
+        if (evt.code === "Escape") {
+            modal.close();
+        }
+    }
+}
